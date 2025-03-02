@@ -184,7 +184,7 @@ async def get_settings_page():
     with open("static/streamlit_wrapper.html") as f:
         content = f.read()
     # Use the same wrapper but point iframe to settings page
-    content = content.replace('PLACEHOLDER_STREAMLIT_URL', f'{STREAMLIT_URL}/settings')
+    content = content.replace("PLACEHOLDER_STREAMLIT_URL", f"{STREAMLIT_URL}/settings")
     return inject_firebase_config(content)
 
 
@@ -194,7 +194,7 @@ async def get_history_page():
     with open("static/streamlit_wrapper.html") as f:
         content = f.read()
     # Use the same wrapper but point iframe to history page
-    content = content.replace('PLACEHOLDER_STREAMLIT_URL', f'{STREAMLIT_URL}/history')
+    content = content.replace("PLACEHOLDER_STREAMLIT_URL", f"{STREAMLIT_URL}/history")
     return inject_firebase_config(content)
 
 
@@ -269,7 +269,22 @@ async def send_notification():
                         title="Test Notification",
                         body="This is a test notification from Firebase Cloud Messaging",
                     ),
-                    data={"score": "850", "time": "2:45"},
+                    # Use data payload for click_action since the Firebase Admin SDK doesn't support it directly
+                    data={
+                        "score": "850",
+                        "time": "2:45",
+                        # Add URL to data for service worker handling
+                        "url": "http://localhost:8090",
+                        "click_action": "http://localhost:8090",
+                    },
+                    # FCM v1 uses webpush field for web-specific notification options
+                    webpush=messaging.WebpushConfig(
+                        notification=messaging.WebpushNotification(
+                            title="Test Notification",
+                            body="This is a test notification from Firebase Cloud Messaging",
+                        )
+                        # Note: Removed fcm_options with link as it requires HTTPS
+                    ),
                     token=token,
                 )
 

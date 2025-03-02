@@ -157,9 +157,25 @@
 
             // Since we're in the browser context we need to create a notification manually
             if (Notification.permission === 'granted') {
-                new Notification(payload.notification.title, {
+                // Create the notification with data
+                const notification = new Notification(payload.notification.title, {
                     body: payload.notification.body
                 });
+                
+                // Add click handler
+                notification.onclick = function() {
+                    console.log("Notification clicked");
+                    window.focus(); // Focus on the current window
+                    notification.close();
+                    
+                    // Determine URL to navigate to
+                    const url = (payload.data && payload.data.click_action) || 
+                               (payload.data && payload.data.url) || 
+                               window.location.origin;
+                    
+                    // Navigate to the URL
+                    window.location.href = url;
+                };
             }
         });
 
