@@ -42,6 +42,9 @@ This demo uses a wrapper-based approach to enable web push notifications in Stre
    FIREBASE_APP_ID=your-app-id
    FIREBASE_MEASUREMENT_ID=your-measurement-id
    FIREBASE_VAPID_KEY=your-vapid-key
+   
+   # Streamlit Configuration
+   STREAMLIT_URL=http://localhost:8501
    ```
    
    You can copy the `.env.example` file as a starting point.

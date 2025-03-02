@@ -31,7 +31,7 @@ firebase_config = {
     "messagingSenderId": os.environ.get("FIREBASE_MESSAGING_SENDER_ID", ""),
     "appId": os.environ.get("FIREBASE_APP_ID", ""),
     "measurementId": os.environ.get("FIREBASE_MEASUREMENT_ID", ""),
-    "vapidKey": os.environ.get("FIREBASE_VAPID_KEY", "")
+    "vapidKey": os.environ.get("FIREBASE_VAPID_KEY", ""),
 }
 
 # Log if Firebase configuration was loaded
@@ -102,27 +102,33 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# Helper function to inject Firebase config into HTML templates
+# Get Streamlit URL from environment variables
+STREAMLIT_URL = os.environ.get("STREAMLIT_URL")
+logger.info(f"Using Streamlit URL: {STREAMLIT_URL}")
+
+
+# Helper function to inject configuration into HTML templates
 def inject_firebase_config(html_content):
     if not firebase_config:
         return html_content
-    
+
     # Simple placeholder replacements
     replacements = {
-        "PLACEHOLDER_FIREBASE_API_KEY": firebase_config.get('apiKey', ''),
-        "PLACEHOLDER_FIREBASE_AUTH_DOMAIN": firebase_config.get('authDomain', ''),
-        "PLACEHOLDER_FIREBASE_PROJECT_ID": firebase_config.get('projectId', ''),
-        "PLACEHOLDER_FIREBASE_STORAGE_BUCKET": firebase_config.get('storageBucket', ''),
-        "PLACEHOLDER_FIREBASE_MESSAGING_SENDER_ID": firebase_config.get('messagingSenderId', ''),
-        "PLACEHOLDER_FIREBASE_APP_ID": firebase_config.get('appId', ''),
-        "PLACEHOLDER_FIREBASE_MEASUREMENT_ID": firebase_config.get('measurementId', ''),
-        "PLACEHOLDER_VAPID_KEY": firebase_config.get('vapidKey', '')
+        "PLACEHOLDER_FIREBASE_API_KEY": firebase_config.get("apiKey", ""),
+        "PLACEHOLDER_FIREBASE_AUTH_DOMAIN": firebase_config.get("authDomain", ""),
+        "PLACEHOLDER_FIREBASE_PROJECT_ID": firebase_config.get("projectId", ""),
+        "PLACEHOLDER_FIREBASE_STORAGE_BUCKET": firebase_config.get("storageBucket", ""),
+        "PLACEHOLDER_FIREBASE_MESSAGING_SENDER_ID": firebase_config.get("messagingSenderId", ""),
+        "PLACEHOLDER_FIREBASE_APP_ID": firebase_config.get("appId", ""),
+        "PLACEHOLDER_FIREBASE_MEASUREMENT_ID": firebase_config.get("measurementId", ""),
+        "PLACEHOLDER_VAPID_KEY": firebase_config.get("vapidKey", ""),
+        "PLACEHOLDER_STREAMLIT_URL": STREAMLIT_URL,
     }
-    
+
     # Perform all replacements
     for placeholder, value in replacements.items():
         html_content = html_content.replace(placeholder, value)
-    
+
     return html_content
 
 
@@ -147,10 +153,10 @@ async def get_streamlit_wrapper():
 async def get_service_worker():
     with open("static/firebase-messaging-sw.js") as f:
         content = f.read()
-    
+
     # Use the same inject_firebase_config helper for consistency
     content = inject_firebase_config(content)
-    
+
     return Response(content=content, media_type="application/javascript")
 
 
