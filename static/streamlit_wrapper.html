@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Notifications with Streamlit</title>
+
+    <!-- Firebase -->
+    <script type="text/javascript" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+    <script type="text/javascript"
+        src="https://www.gstatic.com/firebasejs/11.3.1/firebase-messaging-compat.js"></script>
+    <script type="text/javascript"
+        src="https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics-compat.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            background-color: #f5f5f5;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notification-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button.enable {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button.send {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        #status-message {
+            margin-left: 10px;
+            font-size: 14px;
+        }
+
+        .streamlit-container {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+        }
+
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h3>Firebase Notifications Demo</h3>
+        <div class="notification-controls">
+            <button class="enable" onclick="requestPermission()">Enable Notifications</button>
+            <button class="send" onclick="sendTestNotification()">Send Test Notification</button>
+            <span id="status-message"></span>
+        </div>
+    </div>
+
+    <div class="streamlit-container">
+        <iframe src="http://localhost:8501"></iframe>
+    </div>
+
+    <script>
+        // Firebase configuration (will be injected by server)
+        const firebaseConfig = {
+            apiKey: "PLACEHOLDER_FIREBASE_API_KEY",
+            authDomain: "PLACEHOLDER_FIREBASE_AUTH_DOMAIN",
+            projectId: "PLACEHOLDER_FIREBASE_PROJECT_ID",
+            storageBucket: "PLACEHOLDER_FIREBASE_STORAGE_BUCKET",
+            messagingSenderId: "PLACEHOLDER_FIREBASE_MESSAGING_SENDER_ID",
+            appId: "PLACEHOLDER_FIREBASE_APP_ID",
+            measurementId: "PLACEHOLDER_FIREBASE_MEASUREMENT_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+        console.log("Firebase app initialized.");
+
+        // Status message
+        function setStatus(message, isError = false) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.style.color = isError ? 'red' : 'green';
+            console.log(isError ? 'ERROR: ' : 'INFO: ', message);
+        }
+
+        // Function to request notification permission and register token
+        function requestPermission() {
+            console.log('Requesting permission...');
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+
+                    // Get registration token
+                    messaging.getToken({ vapidKey: "PLACEHOLDER_VAPID_KEY" })
+                        .then((currentToken) => {
+                            console.log("Token received:", currentToken);
+                            if (currentToken) {
+                                console.log("Sending token to server for subscription...");
+                                fetch("/subscribe", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({ token: currentToken })
+                                }).then(response => response.json()).then(data => {
+                                    setStatus("✓ Notifications enabled!");
+                                }).catch(err => {
+                                    console.error("Error subscribing:", err);
+                                    setStatus("Error subscribing to notifications", true);
+                                });
+                            } else {
+                                setStatus("No registration token available", true);
+                            }
+                        }).catch((err) => {
+                            console.error('Error getting token:', err);
+                            setStatus("Error getting registration token", true);
+                        });
+                } else {
+                    setStatus("Notification permission denied", true);
+                }
+            });
+        }
+
+        // Handle incoming messages when the app is in focus
+        messaging.onMessage((payload) => {
+            console.log("Received foreground message:", payload);
+
+            // Since we're in the browser context we need to create a notification manually
+            if (Notification.permission === 'granted') {
+                new Notification(payload.notification.title, {
+                    body: payload.notification.body
+                });
+            }
+        });
+
+        function sendTestNotification() {
+            setStatus("Sending notification...");
+
+            fetch("/send_notification", {
+                method: "POST"
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success_count > 0) {
+                        setStatus(`✓ Notification sent! (${data.success_count} delivered)`);
+                    } else {
+                        setStatus(`Error: ${data.message || data.error || "No subscribers"}`, true);
+                    }
+                })
+                .catch(err => {
+                    console.error("Error sending notification:", err);
+                    setStatus("Error sending test notification", true);
+                });
+        }
+    </script>
+</body>
+
+</html>

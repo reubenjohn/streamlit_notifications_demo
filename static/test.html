@@ -1,0 +1,103 @@
+<html>
+
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+    <script type="text/javascript"
+        src="https://www.gstatic.com/firebasejs/11.3.1/firebase-messaging-compat.js"></script>
+    <script type="text/javascript"
+        src="https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics-compat.js"></script>
+
+    <script>
+
+        const firebaseConfig = {
+            apiKey: "PLACEHOLDER_FIREBASE_API_KEY",
+            authDomain: "PLACEHOLDER_FIREBASE_AUTH_DOMAIN",
+            projectId: "PLACEHOLDER_FIREBASE_PROJECT_ID",
+            storageBucket: "PLACEHOLDER_FIREBASE_STORAGE_BUCKET",
+            messagingSenderId: "PLACEHOLDER_FIREBASE_MESSAGING_SENDER_ID",
+            appId: "PLACEHOLDER_FIREBASE_APP_ID",
+            measurementId: "PLACEHOLDER_FIREBASE_MEASUREMENT_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        console.log("Firebase app initialized.");
+
+        // Function to request notification permission and register token
+        function requestPermission() {
+            console.log('Requesting permission...');
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                    
+                    // Get registration token
+                    messaging.getToken({ vapidKey: "PLACEHOLDER_VAPID_KEY" })
+                        .then((currentToken) => {
+                            console.log("Token received:", currentToken);
+                            if (currentToken) {
+                                console.log("Sending token to server for subscription...");
+                                fetch("/subscribe", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({ token: currentToken })
+                                }).then(response => response.json()).then(data => {
+                                    console.log("Token saved:", data);
+                                    alert("Notifications enabled successfully!");
+                                }).catch(err => {
+                                    console.error("Error subscribing:", err);
+                                    alert("Error subscribing to notifications");
+                                });
+                            } else {
+                                console.log("No registration token available");
+                                alert("No registration token available. Check console for details.");
+                            }
+                        }).catch((err) => {
+                            console.error('Error getting token:', err);
+                            alert("Error getting registration token. Check console for details.");
+                        });
+                } else {
+                    console.log('Notification permission denied.');
+                    alert("Notification permission denied!");
+                }
+            });
+        }
+
+        // Handle incoming messages when the app is in focus
+        messaging.onMessage((payload) => {
+            console.log("Received foreground message:", payload);
+            
+            // Since we're in the browser context we need to create a notification manually
+            if (Notification.permission === 'granted') {
+                new Notification(payload.notification.title, {
+                    body: payload.notification.body
+                });
+            }
+        });
+
+        function sendTestNotification() {
+            console.log("Sending test notification request...");
+            fetch("/send_notification", {
+                method: "POST"
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Notification sent:", data);
+                alert("Test notification sent!");
+            })
+            .catch(err => {
+                console.error("Error sending notification:", err);
+                alert("Error sending test notification");
+            });
+        }
+    </script>
+
+</head>
+
+<body><button onclick="requestPermission()">Enable Notifications</button>
+    <button onclick="sendTestNotification()">Send Test Notification</button>
+</body>
+
+</html>
