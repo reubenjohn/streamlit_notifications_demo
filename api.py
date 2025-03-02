@@ -56,28 +56,45 @@ try:
                 "type": os.environ.get("FIREBASE_ADMIN_TYPE", "service_account"),
                 "project_id": os.environ.get("FIREBASE_PROJECT_ID", ""),
                 "private_key_id": os.environ.get("FIREBASE_ADMIN_PRIVATE_KEY_ID", ""),
-                "private_key": os.environ.get("FIREBASE_ADMIN_PRIVATE_KEY", "").replace("\\n", "\n"),
+                "private_key": os.environ.get("FIREBASE_ADMIN_PRIVATE_KEY", "").replace(
+                    "\\n", "\n"
+                ),
                 "client_email": os.environ.get("FIREBASE_ADMIN_CLIENT_EMAIL", ""),
                 "client_id": os.environ.get("FIREBASE_ADMIN_CLIENT_ID", ""),
-                "auth_uri": os.environ.get("FIREBASE_ADMIN_AUTH_URI", "https://accounts.google.com/o/oauth2/auth"),
-                "token_uri": os.environ.get("FIREBASE_ADMIN_TOKEN_URI", "https://oauth2.googleapis.com/token"),
-                "auth_provider_x509_cert_url": os.environ.get("FIREBASE_ADMIN_AUTH_PROVIDER_CERT_URL", "https://www.googleapis.com/oauth2/v1/certs"),
+                "auth_uri": os.environ.get(
+                    "FIREBASE_ADMIN_AUTH_URI", "https://accounts.google.com/o/oauth2/auth"
+                ),
+                "token_uri": os.environ.get(
+                    "FIREBASE_ADMIN_TOKEN_URI", "https://oauth2.googleapis.com/token"
+                ),
+                "auth_provider_x509_cert_url": os.environ.get(
+                    "FIREBASE_ADMIN_AUTH_PROVIDER_CERT_URL",
+                    "https://www.googleapis.com/oauth2/v1/certs",
+                ),
                 "client_x509_cert_url": os.environ.get("FIREBASE_ADMIN_CLIENT_CERT_URL", ""),
-                "universe_domain": os.environ.get("FIREBASE_ADMIN_UNIVERSE_DOMAIN", "googleapis.com")
+                "universe_domain": os.environ.get(
+                    "FIREBASE_ADMIN_UNIVERSE_DOMAIN", "googleapis.com"
+                ),
             }
-            
+
             # Check if required fields are present
             required_fields = ["private_key", "client_email", "project_id"]
-            missing_fields = [field for field in required_fields if not service_account_dict.get(field)]
-            
+            missing_fields = [
+                field for field in required_fields if not service_account_dict.get(field)
+            ]
+
             if missing_fields:
-                logger.error(f"Missing required Firebase Admin SDK credentials: {', '.join(missing_fields)}")
+                logger.error(
+                    f"Missing required Firebase Admin SDK credentials: {', '.join(missing_fields)}"
+                )
             else:
                 # Initialize Firebase with credentials from environment variables
                 cred = credentials.Certificate(service_account_dict)
                 initialize_app(cred)
                 firebase_initialized = True
-                logger.info("Firebase initialized successfully with credentials from environment variables")
+                logger.info(
+                    "Firebase initialized successfully with credentials from environment variables"
+                )
     except Exception as e:
         logger.error(f"Failed to initialize Firebase: {e}", exc_info=True)
 except Exception as e:
@@ -158,6 +175,26 @@ async def get_html():
 async def get_streamlit_wrapper():
     with open("static/streamlit_wrapper.html") as f:
         content = f.read()
+    return inject_firebase_config(content)
+
+
+# Settings page endpoint
+@app.get("/settings", response_class=HTMLResponse)
+async def get_settings_page():
+    with open("static/streamlit_wrapper.html") as f:
+        content = f.read()
+    # Use the same wrapper but point iframe to settings page
+    content = content.replace('PLACEHOLDER_STREAMLIT_URL', f'{STREAMLIT_URL}/settings')
+    return inject_firebase_config(content)
+
+
+# History page endpoint
+@app.get("/history", response_class=HTMLResponse)
+async def get_history_page():
+    with open("static/streamlit_wrapper.html") as f:
+        content = f.read()
+    # Use the same wrapper but point iframe to history page
+    content = content.replace('PLACEHOLDER_STREAMLIT_URL', f'{STREAMLIT_URL}/history')
     return inject_firebase_config(content)
 
 
@@ -270,7 +307,8 @@ def main():
 
     logger.info(f"Starting server at http://{args.host}:{args.port}")
     logger.info("- For Firebase demo, visit: http://localhost:8090/")
-    logger.info("- For Streamlit with notifications: http://localhost:8090/streamlit")
+    logger.info("- For settings page: http://localhost:8090/settings")
+    logger.info("- For history page: http://localhost:8090/history")
 
     uvicorn.run("api:app", host=args.host, port=args.port, reload=True)
 

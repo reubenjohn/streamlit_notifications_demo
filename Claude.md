@@ -1,14 +1,15 @@
-# Streamlit with Firebase Push Notifications (Single Port Demo)
+# Streamlit with Firebase Push Notifications (Multi-page Navigation Demo)
 
-This project demonstrates a working implementation of Firebase Cloud Messaging (FCM) push notifications with a Streamlit application, served through a single port using Nginx as a reverse proxy.
+This project demonstrates a working implementation of Firebase Cloud Messaging (FCM) push notifications with a Streamlit application, with a focus on supporting correct navigation to Streamlit sub-pages.
 
 ## Current Goal
 
 Having successfully implemented and demonstrated Firebase push notifications with Streamlit, our current goal is to:
 
-1. Configure and test Nginx as a reverse proxy to serve both the FastAPI backend and Streamlit frontend from a single port
-2. Ensure all functionality works seamlessly through the proxy configuration
-3. Document the complete setup for deployment on platforms like Railway
+1. Implement sub-pages in the Streamlit application
+2. Ensure users can navigate to specific Streamlit sub-pages via the FastAPI wrapper
+3. Modify the wrapper to correctly handle sub-page navigation through the iframe
+4. Validate that all functionality works seamlessly including the push notifications
 
 ## Development Guidelines
 

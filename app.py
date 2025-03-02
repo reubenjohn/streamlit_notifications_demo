@@ -7,7 +7,9 @@ st.set_page_config(page_title="Firebase Notifications Demo", page_icon="🔔", l
 
 # Title
 st.title("Firebase Notifications Demo")
-st.write("This is a simple Streamlit app that demonstrates Firebase notifications.")
+st.write(
+    "This is a simple Streamlit app that demonstrates Firebase notifications with multiple pages."
+)
 
 # Information section
 st.divider()
@@ -22,6 +24,22 @@ When used within the wrapper UI (http://localhost:8090), you can:
 
 The wrapper UI is necessary because Streamlit's iframe architecture prevents direct 
 service worker registration, which is required for Firebase notifications.
+"""
+)
+
+# Navigation section
+st.divider()
+st.subheader("Navigation")
+st.write(
+    """
+This demo includes multiple pages to demonstrate navigation:
+1. Home (this page)
+2. Settings - configuring notification preferences
+3. History - viewing past notifications
+
+Use the sidebar to navigate between pages, or try accessing pages directly via URL:
+- http://localhost:8090/settings
+- http://localhost:8090/history
 """
 )
 
