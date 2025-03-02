@@ -43,30 +43,43 @@ else:
 # Initialize Firebase with credentials
 firebase_initialized = False
 try:
-    # Get service account path (with fallback to default)
-    service_account_path = os.environ.get("SERVICE_ACCOUNT_KEY_PATH")
+    # Check if Firebase app is already initialized
+    try:
+        from firebase_admin import _apps
 
-    # Validate the service account path exists
-    if not os.path.exists(service_account_path):
-        logger.error(f"Firebase service account file not found at: {service_account_path}")
-    else:
-        logger.info(f"Using Firebase service account from: {service_account_path}")
-
-        # Check if Firebase app is already initialized
-        try:
-            from firebase_admin import _apps
-
-            if _apps:
-                firebase_initialized = True
-                logger.info(f"Firebase already initialized, using existing app")
+        if _apps:
+            firebase_initialized = True
+            logger.info(f"Firebase already initialized, using existing app")
+        else:
+            # Create Firebase Admin SDK credentials from environment variables
+            service_account_dict = {
+                "type": os.environ.get("FIREBASE_ADMIN_TYPE", "service_account"),
+                "project_id": os.environ.get("FIREBASE_PROJECT_ID", ""),
+                "private_key_id": os.environ.get("FIREBASE_ADMIN_PRIVATE_KEY_ID", ""),
+                "private_key": os.environ.get("FIREBASE_ADMIN_PRIVATE_KEY", "").replace("\\n", "\n"),
+                "client_email": os.environ.get("FIREBASE_ADMIN_CLIENT_EMAIL", ""),
+                "client_id": os.environ.get("FIREBASE_ADMIN_CLIENT_ID", ""),
+                "auth_uri": os.environ.get("FIREBASE_ADMIN_AUTH_URI", "https://accounts.google.com/o/oauth2/auth"),
+                "token_uri": os.environ.get("FIREBASE_ADMIN_TOKEN_URI", "https://oauth2.googleapis.com/token"),
+                "auth_provider_x509_cert_url": os.environ.get("FIREBASE_ADMIN_AUTH_PROVIDER_CERT_URL", "https://www.googleapis.com/oauth2/v1/certs"),
+                "client_x509_cert_url": os.environ.get("FIREBASE_ADMIN_CLIENT_CERT_URL", ""),
+                "universe_domain": os.environ.get("FIREBASE_ADMIN_UNIVERSE_DOMAIN", "googleapis.com")
+            }
+            
+            # Check if required fields are present
+            required_fields = ["private_key", "client_email", "project_id"]
+            missing_fields = [field for field in required_fields if not service_account_dict.get(field)]
+            
+            if missing_fields:
+                logger.error(f"Missing required Firebase Admin SDK credentials: {', '.join(missing_fields)}")
             else:
-                # Initialize Firebase with the service account
-                cred = credentials.Certificate(service_account_path)
+                # Initialize Firebase with credentials from environment variables
+                cred = credentials.Certificate(service_account_dict)
                 initialize_app(cred)
                 firebase_initialized = True
-                logger.info(f"Firebase initialized successfully")
-        except Exception as e:
-            logger.error(f"Failed to initialize Firebase: {e}", exc_info=True)
+                logger.info("Firebase initialized successfully with credentials from environment variables")
+    except Exception as e:
+        logger.error(f"Failed to initialize Firebase: {e}", exc_info=True)
 except Exception as e:
     logger.error(f"Failed to initialize Firebase: {e}", exc_info=True)
 

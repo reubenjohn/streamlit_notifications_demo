@@ -30,9 +30,6 @@ This demo uses a wrapper-based approach to enable web push notifications in Stre
    ```
 3. Create a `.env` file in the project root with your Firebase configuration:
    ```
-   # Firebase Service Account for Admin SDK
-   SERVICE_ACCOUNT_KEY_PATH=/path/to/your-firebase-service-account.json
-
    # Firebase Web Configuration
    FIREBASE_API_KEY=your-api-key
    FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
@@ -43,11 +40,23 @@ This demo uses a wrapper-based approach to enable web push notifications in Stre
    FIREBASE_MEASUREMENT_ID=your-measurement-id
    FIREBASE_VAPID_KEY=your-vapid-key
    
+   # Firebase Admin SDK Configuration (from service account JSON)
+   FIREBASE_ADMIN_TYPE=service_account
+   FIREBASE_ADMIN_PRIVATE_KEY_ID=your-private-key-id
+   FIREBASE_ADMIN_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nyour-private-key-content-with-newlines\n-----END PRIVATE KEY-----\n
+   FIREBASE_ADMIN_CLIENT_EMAIL=your-project@your-project-id.iam.gserviceaccount.com
+   FIREBASE_ADMIN_CLIENT_ID=your-client-id
+   FIREBASE_ADMIN_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+   FIREBASE_ADMIN_TOKEN_URI=https://oauth2.googleapis.com/token
+   FIREBASE_ADMIN_AUTH_PROVIDER_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
+   FIREBASE_ADMIN_CLIENT_CERT_URL=https://www.googleapis.com/robot/v1/metadata/x509/your-project%40your-project-id.iam.gserviceaccount.com
+   FIREBASE_ADMIN_UNIVERSE_DOMAIN=googleapis.com
+   
    # Streamlit Configuration
    STREAMLIT_URL=http://localhost:8501
    ```
    
-   You can copy the `.env.example` file as a starting point.
+   You can copy the `.env.example` file as a starting point. Note that for the `FIREBASE_ADMIN_PRIVATE_KEY`, you need to include the actual private key with newlines represented as `\n`.
 
 ## Running the Demo
 
@@ -104,15 +113,26 @@ This project includes a `railway.toml` configuration for easy deployment on [Rai
 
 1. The configuration deploys only the FastAPI backend (not Streamlit)
 2. Configure the following environment variables in your Railway project:
-   - `SERVICE_ACCOUNT_KEY_PATH`: Path to your Firebase Admin SDK service account file
-   - `FIREBASE_API_KEY`: Your Firebase Web API Key
-   - `FIREBASE_AUTH_DOMAIN`: Your Firebase auth domain
-   - `FIREBASE_PROJECT_ID`: Your Firebase project ID
-   - `FIREBASE_STORAGE_BUCKET`: Your Firebase storage bucket
-   - `FIREBASE_MESSAGING_SENDER_ID`: Your Firebase messaging sender ID
-   - `FIREBASE_APP_ID`: Your Firebase app ID
-   - `FIREBASE_MEASUREMENT_ID`: Your Firebase measurement ID
-   - `FIREBASE_VAPID_KEY`: Your Firebase VAPID key
+   - All the Firebase Web Configuration variables:
+     - `FIREBASE_API_KEY`: Your Firebase Web API Key
+     - `FIREBASE_AUTH_DOMAIN`: Your Firebase auth domain
+     - `FIREBASE_PROJECT_ID`: Your Firebase project ID
+     - `FIREBASE_STORAGE_BUCKET`: Your Firebase storage bucket
+     - `FIREBASE_MESSAGING_SENDER_ID`: Your Firebase messaging sender ID
+     - `FIREBASE_APP_ID`: Your Firebase app ID
+     - `FIREBASE_MEASUREMENT_ID`: Your Firebase measurement ID
+     - `FIREBASE_VAPID_KEY`: Your Firebase VAPID key
+   - All the Firebase Admin SDK Configuration variables:
+     - `FIREBASE_ADMIN_TYPE`: Usually "service_account"
+     - `FIREBASE_ADMIN_PRIVATE_KEY_ID`: Your Firebase private key ID
+     - `FIREBASE_ADMIN_PRIVATE_KEY`: Your Firebase private key (with newlines as \n)
+     - `FIREBASE_ADMIN_CLIENT_EMAIL`: Your Firebase client email
+     - `FIREBASE_ADMIN_CLIENT_ID`: Your Firebase client ID
+     - `FIREBASE_ADMIN_AUTH_URI`: Authentication URI
+     - `FIREBASE_ADMIN_TOKEN_URI`: Token URI
+     - `FIREBASE_ADMIN_AUTH_PROVIDER_CERT_URL`: Auth provider cert URL
+     - `FIREBASE_ADMIN_CLIENT_CERT_URL`: Client cert URL
+     - `FIREBASE_ADMIN_UNIVERSE_DOMAIN`: Usually "googleapis.com"
    - `STREAMLIT_URL`: URL to your separately deployed Streamlit app
 
 3. Deploy your Streamlit app separately (on Railway or another platform)

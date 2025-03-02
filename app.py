@@ -3,11 +3,7 @@ import requests
 import json
 
 # Set page config
-st.set_page_config(
-    page_title="Firebase Notifications Demo",
-    page_icon="🔔",
-    layout="centered"
-)
+st.set_page_config(page_title="Firebase Notifications Demo", page_icon="🔔", layout="centered")
 
 # Title
 st.title("Firebase Notifications Demo")
@@ -16,16 +12,18 @@ st.write("This is a simple Streamlit app that demonstrates Firebase notification
 # Information section
 st.divider()
 st.subheader("How Notifications Work")
-st.write("""
+st.write(
+    """
 This demo uses Firebase Cloud Messaging (FCM) to enable browser notifications.
 
-When used within the wrapper UI (http://localhost:8090/streamlit), you can:
+When used within the wrapper UI (http://localhost:8090), you can:
 1. Enable notifications with the button in the top header
 2. Send test notifications using the button in the top header
 
 The wrapper UI is necessary because Streamlit's iframe architecture prevents direct 
 service worker registration, which is required for Firebase notifications.
-""")
+"""
+)
 
 # Status section
 st.divider()
