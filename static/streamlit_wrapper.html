@@ -138,6 +138,7 @@
                                     console.error("Error subscribing:", err);
                                     setStatus("Error subscribing to notifications", true);
                                 });
+                                navigator.serviceWorker.register('firebase-messaging-sw.js');
                             } else {
                                 setStatus("No registration token available", true);
                             }
@@ -151,31 +152,55 @@
             });
         }
 
+        requestPermission();
+
         // Handle incoming messages when the app is in focus
         messaging.onMessage((payload) => {
             console.log("Received foreground message:", payload);
 
             // Since we're in the browser context we need to create a notification manually
             if (Notification.permission === 'granted') {
-                // Create the notification with data
-                const notification = new Notification(payload.notification.title, {
-                    body: payload.notification.body
-                });
-                
-                // Add click handler
-                notification.onclick = function() {
-                    console.log("Notification clicked");
-                    window.focus(); // Focus on the current window
-                    notification.close();
-                    
-                    // Determine URL to navigate to
-                    const url = (payload.data && payload.data.click_action) || 
-                               (payload.data && payload.data.url) || 
-                               window.location.origin;
-                    
-                    // Navigate to the URL
-                    window.location.href = url;
-                };
+                // For Chrome on Android, we need to use serviceWorker registration
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        // Use service worker to show notification
+                        try {
+                            registration.showNotification(payload.notification.title, {
+                                body: payload.notification.body,
+                                icon: '/static/img/firebase-logo.svg',
+                                data: {
+                                    url: (payload.data && payload.data.click_action) ||
+                                        (payload.data && payload.data.url) ||
+                                        window.location.origin
+                                }
+                            });
+                        } catch (err) {
+                            console.error("Error showing notification:", err);
+                        }
+                    }).catch(err => {
+                        console.error("Error showing notification:", err);
+                    });
+                } else {
+                    // Fallback for browsers that support the Notification constructor
+                    const notification = new Notification(payload.notification.title, {
+                        body: payload.notification.body
+                    });
+
+                    // Add click handler
+                    notification.onclick = function () {
+                        console.log("Notification clicked");
+                        window.focus(); // Focus on the current window
+                        notification.close();
+
+                        // Determine URL to navigate to
+                        const url = (payload.data && payload.data.click_action) ||
+                            (payload.data && payload.data.url) ||
+                            window.location.origin;
+
+                        // Navigate to the URL
+                        window.location.href = url;
+                    };
+                }
             }
         });
 

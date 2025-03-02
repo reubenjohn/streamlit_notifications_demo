@@ -18,8 +18,8 @@ const messaging = firebase.messaging();
 // Background message handling
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Received background message ', payload);
-    
-    const notificationTitle = payload.notification.title;
+
+    const notificationTitle = `${payload.notification.title} [Background]`;
     const notificationOptions = {
         body: payload.notification.body,
         icon: '/static/img/firebase-logo.svg',
@@ -28,22 +28,22 @@ messaging.onBackgroundMessage((payload) => {
             url: payload.data?.click_action || payload.data?.url || 'http://localhost:8090'
         }
     };
-    
+
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // Add click handler for the notifications
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', function (event) {
     console.log('[firebase-messaging-sw.js] Notification click detected', event);
-    
+
     event.notification.close();
-    
+
     // Get the URL from notification data, fallback to root URL
     const urlToOpen = event.notification.data.url || 'http://localhost:8090';
-    
+
     // This will use the URL specified in the notification payload
     event.waitUntil(
-        clients.matchAll({type: 'window'}).then(windowClients => {
+        clients.matchAll({ type: 'window' }).then(windowClients => {
             // Check if there is already a window/tab open with the target URL
             for (var i = 0; i < windowClients.length; i++) {
                 var client = windowClients[i];

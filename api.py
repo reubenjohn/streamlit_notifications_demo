@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import os
 import logging
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, Response
@@ -237,7 +237,7 @@ async def subscribe(data: dict):
 
 # Send notification endpoint - using individual messages with the Firebase Admin SDK
 @app.post("/send_notification")
-async def send_notification():
+async def send_notification(request: Request):
     """Send notifications to all subscribers using Firebase Admin SDK's individual message API"""
     if not firebase_initialized:
         logger.error("Firebase not initialized. Cannot send notifications.")
@@ -259,6 +259,11 @@ async def send_notification():
         # Track successful sends
         success_count = 0
         failure_count = 0
+        
+        # Get the base URL from the request
+        # This will extract e.g., "http://localhost:8090" from the incoming request
+        base_url = f"{request.url.scheme}://{request.url.netloc}"
+        logger.info(f"Using dynamic base URL for notifications: {base_url}")
 
         # Send to each token individually (multicast messages don't work reliably)
         for idx, token in enumerate(subscribers):
@@ -273,9 +278,9 @@ async def send_notification():
                     data={
                         "score": "850",
                         "time": "2:45",
-                        # Add URL to data for service worker handling
-                        "url": "http://localhost:8090",
-                        "click_action": "http://localhost:8090",
+                        # Add URL to data for service worker handling - using dynamic base URL
+                        "url": base_url,
+                        "click_action": base_url,
                     },
                     # FCM v1 uses webpush field for web-specific notification options
                     webpush=messaging.WebpushConfig(
