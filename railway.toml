@@ -1,9 +1,9 @@
 [build]
 builder = "nixpacks"
-buildCommand = "sudo apt update && sudo apt install -y nginx && pip install poetry && poetry install --no-root"
+buildCommand = "pip install poetry && poetry install --no-root"
 
 [deploy]
-startCommand = "sudo -E ./config_nginx.sh $PORT && sudo service nginx restart && python3 env_to_streamlit_secrets.py .streamlit/secrets.toml && (python3 api.py --port 8090 &) && poetry run streamlit run app.py --server.address 0.0.0.0 --server.port 8501 --server.fileWatcherType none --browser.gatherUsageStats false" # --client.showErrorDetails false
-# healthcheckPath = "/"
-# healthcheckTimeout = 100
-# restartPolicyType = "never"
+startCommand = "python3 api.py --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on-failure"

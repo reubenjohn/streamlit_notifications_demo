@@ -98,10 +98,31 @@ This demo uses a wrapper-based approach to enable web push notifications in Stre
 
 ## Deployment
 
-For production deployment, you can use:
+### Railway Deployment
 
-1. A reverse proxy like Nginx to serve both services on a single domain
-2. Environment variables to configure Firebase credentials:
+This project includes a `railway.toml` configuration for easy deployment on [Railway](https://railway.app/):
+
+1. The configuration deploys only the FastAPI backend (not Streamlit)
+2. Configure the following environment variables in your Railway project:
+   - `SERVICE_ACCOUNT_KEY_PATH`: Path to your Firebase Admin SDK service account file
+   - `FIREBASE_API_KEY`: Your Firebase Web API Key
+   - `FIREBASE_AUTH_DOMAIN`: Your Firebase auth domain
+   - `FIREBASE_PROJECT_ID`: Your Firebase project ID
+   - `FIREBASE_STORAGE_BUCKET`: Your Firebase storage bucket
+   - `FIREBASE_MESSAGING_SENDER_ID`: Your Firebase messaging sender ID
+   - `FIREBASE_APP_ID`: Your Firebase app ID
+   - `FIREBASE_MEASUREMENT_ID`: Your Firebase measurement ID
+   - `FIREBASE_VAPID_KEY`: Your Firebase VAPID key
+   - `STREAMLIT_URL`: URL to your separately deployed Streamlit app
+
+3. Deploy your Streamlit app separately (on Railway or another platform)
+4. Point `STREAMLIT_URL` to your deployed Streamlit URL
+
+### Other Deployment Options
+
+For other deployment scenarios:
+
+1. Environment variables to configure Firebase credentials:
    - Set all `FIREBASE_*` variables directly in your hosting environment 
    - Or use a `.env` file as described in the setup section
-3. A database to persistently store FCM tokens
+2. Consider using a database to persistently store FCM tokens
